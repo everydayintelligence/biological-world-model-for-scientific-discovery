@@ -27,6 +27,47 @@ without fine-tuning.
 Multi-domain pretraining on [The Well](https://arxiv.org/abs/2412.00568) 
 (15 TB, 16 PDE families) is currently in progress.
 
+## Architecture
+```
+                       DATA SOURCES
+        +-----------------+ +----------+ +---------+
+        | The Well 15 TB  | | Biology  | | Climate |
+        | 16 simulations  | | bio data | | CMIP6   |
+        +--------+--------+ +----+-----+ +----+----+
+                 |               |             |
+                 +-------+-------+-------------+
+                         v
+              +-------------------------+
+              | 1. Graph Constructor    |   (domain-specific)
+              +-----------+-------------+
+                          v
+              +-------------------------+
+              | 2. HGAT Encoder         |
+              +-----------+-------------+
+                          v  z_t
+              +-------------------------+
+              | 3. DBMM Belief          |
+              +-----------+-------------+
+                          v  b_t
+   +----------+    +-------------------------+    +----------------+
+   | 6. Graph |--->| 4. JEPA Latent Dynamics |<-->| 7. COCONUT LLM |
+   |    RAG   |    |    z_t  ->  z_(t+k)     |    |   continuous   |
+   +-----+----+    +-----------+-------------+    |   latent       |
+         |                     v                  |   reasoning    |
+         |         +-------------------------+    +-------+--------+
+         |         | 5. EBM Plausibility     |            |
+         |         +-----------+-------------+            |
+         |                     v  filtered               |
+         +-------------------> +-------------------------+
+                               | 8. Policy + Decision    |
+                               +-----------+-------------+
+                                           v
+                +-------------+ +--------------+ +--------------+
+                | Predictions | | Hypotheses   | | Decisions    |
+                |             | | + provenance | | + log        |
+                +-------------+ +--------------+ +--------------+
+```
+
 ## Status
 
 Architecture submitted to ICML 2026 AI for Science workshop (April 2026).
